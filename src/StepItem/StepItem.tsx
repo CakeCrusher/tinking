@@ -4,6 +4,8 @@ import {
   Flex,
   Select,
   Input,
+  NumberInput,
+  NumberInputField,
   Box,
   Tag,
   VStack,
@@ -26,7 +28,14 @@ import {
   parseTagType,
   parseTagTypeFromAction,
 } from "../service/helperFunctions";
-import { KeyInput, MouseClick, Step, StepAction, StepOption } from "../types";
+import {
+  KeyInput,
+  MouseClick,
+  Step,
+  StepAction,
+  StepOption,
+  AmountOption,
+} from "../types";
 import { OptionItem } from "./OptionItem";
 import { RecordItem } from "./RecordItem";
 
@@ -47,6 +56,9 @@ export const StepItem = ({
   const [currentStep, setCurrentStep] = useState(step);
   const [formattedContent, setFormattedContent] = useState(step.content);
   const [editingStepIndex, setEditingStepIndex] = useAtom(editingStepAtom);
+  const [scrapeAllElements, setScrapeAllElements] = useState(true);
+  const [totalNodes, setTotalNodes] = useState(0);
+  console.log(stepIndex,totalNodes,stepIndex > 0 && totalNodes && totalNodes > 1);
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const handleIncomingMessageFromPage = (event: any) => {
@@ -215,6 +227,7 @@ export const StepItem = ({
       return;
     }
     if (nodes && nodes.length > 0) {
+      setTotalNodes(nodes.length);
       const tagName = nodes[0].tagName.toLowerCase();
       setCurrentStep({
         ...currentStep,
@@ -232,6 +245,7 @@ export const StepItem = ({
         node.classList.add("crx_mouse_visited");
       });
     } else {
+      setTotalNodes(0);
       setCurrentStep({
         ...currentStep,
         totalSelected: 0,
@@ -242,6 +256,21 @@ export const StepItem = ({
         selector: selector,
       });
     }
+  };
+
+  const handleAmtOfElementsFormatChange = (amountOption: AmountOption) => {
+    if (amountOption === AmountOption.ALL) {
+      setScrapeAllElements(true);
+    } else {
+      setScrapeAllElements(false);
+    }
+  };
+
+  const handleAmtOfElementsChange = (amount: number) => {
+    setCurrentStep({
+      ...currentStep,
+      totalSelected: amount,
+    });
   };
 
   const handleRecordChange = (
@@ -338,19 +367,17 @@ export const StepItem = ({
                 ))}
               </VStack>
             )}
-            {stepIndex > 0 &&
-              currentStep.totalSelected &&
-              currentStep.totalSelected > 0 && (
-                <Button
-                  colorScheme="teal"
-                  onClick={handleAddOptionClick}
-                  leftIcon={<SmallAddIcon />}
-                  size="xs"
-                  variant="outline"
-                >
-                  Add an option
-                </Button>
-              )}
+            {stepIndex > 0 && totalNodes && totalNodes > 0 && (
+              <Button
+                colorScheme="teal"
+                onClick={handleAddOptionClick}
+                leftIcon={<SmallAddIcon />}
+                size="xs"
+                variant="outline"
+              >
+                Add an option
+              </Button>
+            )}
             {formattedContent && (
               <Box
                 display="inline-flex"
@@ -364,13 +391,11 @@ export const StepItem = ({
                 </Tag>
               </Box>
             )}{" "}
-            {stepIndex > 0 &&
-              currentStep.totalSelected &&
-              currentStep.totalSelected > 1 && (
-                <Box display="inline-flex" align="center">
-                  <Tag>{currentStep.totalSelected} nodes</Tag>
-                </Box>
-              )}
+            {stepIndex > 0 && totalNodes && totalNodes > 1 && (
+              <Box display="inline-flex" align="center">
+                <Tag>{totalNodes} nodes</Tag>
+              </Box>
+            )}
           </VStack>
         ) : (
           <VStack align="start" w="full" overflow="hidden" mr={2}>
@@ -406,7 +431,17 @@ export const StepItem = ({
                     placeholder="Type a query selector"
                     onChange={handleSelectorChange}
                   />
-                  {currentStep.totalSelected && (
+                  <Text>Amount of elements to scrape</Text>
+                  <SelectAmtOfElements
+                    step={currentStep}
+                    nodes={totalNodes}
+                    scrapeAllElements={scrapeAllElements}
+                    onAmtOfElementsChange={handleAmtOfElementsChange}
+                    onAmtOfElementsFormatChange={
+                      handleAmtOfElementsFormatChange
+                    }
+                  />
+                  {totalNodes && (
                     <Flex maxW="full" flexWrap="wrap" style={{ gap: 5 }}>
                       {currentStep.content && (
                         <Tag whiteSpace="pre" overflow="hidden">
@@ -414,7 +449,7 @@ export const StepItem = ({
                         </Tag>
                       )}
                       <Tag whiteSpace="pre" overflow="hidden">
-                        {currentStep.totalSelected} elements
+                        {totalNodes} elements
                       </Tag>
                     </Flex>
                   )}
@@ -477,4 +512,43 @@ const SelectAction = ({
       {StepAction.RECORD_CLICKS_KEYS}
     </option>
   </Select>
+);
+
+const SelectAmtOfElements = ({
+  step,
+  nodes,
+  scrapeAllElements,
+  onAmtOfElementsChange,
+  onAmtOfElementsFormatChange,
+}: {
+  step: Step;
+  nodes: number;
+  scrapeAllElements: boolean;
+  onAmtOfElementsChange: (val: number) => void;
+  onAmtOfElementsFormatChange: (val: AmountOption) => void;
+}) => (
+  <Flex style={{ gap: 10 }}>
+    <Select
+      size="sm"
+      display="inline-flex"
+      w="160px"
+      value={scrapeAllElements ? AmountOption.ALL : AmountOption.CUSTOM}
+      onChange={(e) =>
+        onAmtOfElementsFormatChange(e.target.value as AmountOption)
+      }
+    >
+      <option value={AmountOption.ALL}>{AmountOption.ALL}</option>
+      <option value={AmountOption.CUSTOM}>{AmountOption.CUSTOM}</option>
+    </Select>
+    {scrapeAllElements || (
+      <NumberInput
+        value={step.totalSelected}
+        size="sm"
+        placeholder="# of elements"
+        onChange={(valueString) => onAmtOfElementsChange(Number(valueString))}
+      >
+        <NumberInputField />
+      </NumberInput>
+    )}
+  </Flex>
 );

@@ -54,3 +54,8 @@ export interface ScrappedStep {
   tagType: TagType;
   content: string;
 }
+
+export enum AmountOption {
+  ALL = "All",
+  CUSTOM = "Custom amount",
+}
