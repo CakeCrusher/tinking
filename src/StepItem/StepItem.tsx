@@ -3,6 +3,7 @@ import {
   CheckIcon,
   SmallAddIcon,
   ChevronDownIcon,
+  DragHandleIcon,
 } from "@chakra-ui/icons";
 import {
   ListItem,
@@ -317,9 +318,10 @@ export const StepItem = ({
                 pointerEvents={isNotCurrentEditingStep ? "none" : "auto"}
               >
                 <Flex style={{ gap: 10 }}>
-                  <Tag height="2rem" {...provided.dragHandleProps}>
-                    {stepIndex + 1}
-                  </Tag>
+                  <Box align="center" {...provided.dragHandleProps}>
+                    <DragHandleIcon w={4} h={4} />
+                  </Box>
+                  <Tag height="2rem">{stepIndex + 1}</Tag>
                   <SelectAction
                     step={currentStep}
                     onActionChange={handleActionChange}
