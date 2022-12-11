@@ -26,7 +26,10 @@ type FormValues = {
   relateTink: boolean;
 };
 
-export const FeedbackForm = ({ steps, callback }: FeedbackProps) => {
+export const FeedbackForm = ({
+  steps,
+  callback,
+}: FeedbackProps): JSX.Element => {
   const { handleSubmit, errors, register, formState } = useForm();
   const toast = useToast();
 
@@ -37,7 +40,7 @@ export const FeedbackForm = ({ steps, callback }: FeedbackProps) => {
       steps
     );
 
-    if (tinkID === false) {
+    if (tinkID === null) {
       toast({
         title: "Failed",
         description:

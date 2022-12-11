@@ -7,14 +7,15 @@ import {
   StepOption,
   MouseClick,
   KeyInput,
+  Tink,
 } from "../types";
 import { ADMIN_SECRET, GITHUB_TOKEN } from "../env";
 import { v4 as uuidv4 } from "uuid";
 
 export const makeGithubIssue = async (
   description: string,
-  tinkID: string | undefined
-) => {
+  tinkID: string | null
+): Promise<string> => {
   const postedIssue = await fetch(
     "https://api.github.com/repos/baptisteArno/tinking/issues",
     {
@@ -35,90 +36,70 @@ export const makeGithubIssue = async (
   return postedIssue.html_url;
 };
 
-export const saveTink = async (steps: Step[]) => {
-  const MAKE_TINK = `mutation MyMutation($steps: [A_Step] = {}) {
-    makeTink(steps: $steps) {
-      id
-    }
-  }`;
+export const saveTink = async (steps: Step[]): Promise<string> => {
+  // save all the steps belonging to a tink and return the tink.id
+  type SaveTinkVariables = {
+    steps: Step[];
+  };
+  const tinkID = uuidv4();
 
-  const madeTink = await fetchGraphQL(MAKE_TINK, {
-    steps,
-  });
-
-  return madeTink.data.makeTink.id;
+  return tinkID;
 };
 
+type FeedbackResponse = null | string;
 export const submitFeedback = async (
   description: string,
   makeTink: boolean,
   steps: Step[]
-) => {
-  const MAKE_FEEDBACK = `mutation MyMutation($description: String = ""${
-    makeTink ? ", $steps: [A_Step] = {}" : ""
-  }) {
-    submitFeedback(feedback: {description: $description${
-      makeTink ? ", steps: $steps" : ""
-    }}) {
-      Feedback {
-        id
-        Tink {
-          id
-        }
-      }
-    }
-  }`;
-  let variables;
-  if (makeTink) {
-    variables = {
-      description,
-      steps,
-    };
-  } else {
-    variables = {
-      description,
-    };
+): Promise<FeedbackResponse> => {
+  // submit the feedback and return the tink.id
+  type FeedbackVariables = {
+    description: string;
+    makeTink: boolean;
+    steps: Step[];
+  };
+  const response: FeedbackResponse = null;
+  if (!response) {
+    return null;
   }
-  const madeFeedback = await fetchGraphQL(MAKE_FEEDBACK, variables);
-  console.log(madeFeedback);
-  if (!madeFeedback.data) {
-    return false;
-  }
-  const tinkData = madeFeedback.data.submitFeedback.Feedback.Tink;
-  return tinkData ? tinkData.id : null;
+  const tinkId = response;
+  return tinkId;
 };
 
-export const loadTink = async (tinkID: string) => {
-  const GET_TINK = `query MyQuery {
-    Tink(where: {id: {_eq: "${tinkID}"}}) {
-      dateCreated
-      website
-      Steps {
-        index
-        totalSelected
-        StepAction {
-          action
-          selector
-          tagName
-          RecordActions {
-            index
-            isClick
-            selector
-          }
-          Options {
-            type
-            value
-          }
-        }
-      }
-    }
-  }`;
-  const findTink = await fetchGraphQL(GET_TINK);
-  if (findTink.data && findTink.data.Tink[0]) {
-    return tinkToSteps(findTink.data.Tink[0]);
-  } else {
-    return false;
+export const loadTink = async (tinkId: string): Promise<Step[] | null> => {
+  // Get all of the tink data by passing a tink.id
+  type LoadTinkVariables = {
+    tinkId: string;
+  };
+  const response: Tink | null = null;
+  // const GET_TINK = `query MyQuery {
+  //   Tink(where: {id: {_eq: "${tinkID}"}}) {
+  //     dateCreated
+  //     website
+  //     Steps {
+  //       index
+  //       totalSelected
+  //       StepAction {
+  //         action
+  //         selector
+  //         tagName
+  //         RecordActions {
+  //           index
+  //           isClick
+  //           selector
+  //         }
+  //         Options {
+  //           type
+  //           value
+  //         }
+  //       }
+  //     }
+  //   }
+  // }`;
+  if (!response) {
+    return null;
   }
+  return tinkToSteps(response);
 };
 
 export const tinkToSteps = (tink: any): Step[] => {
@@ -174,7 +155,10 @@ export const tinkToSteps = (tink: any): Step[] => {
   return parsed;
 };
 
-export const fetchGraphQL = async (schema: string, variables = {}) => {
+export const fetchGraphQL = async (
+  schema: string,
+  variables = {}
+): Promise<any> => {
   const graphql = JSON.stringify({
     query: schema,
     variables,

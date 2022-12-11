@@ -47,7 +47,12 @@ export interface Step {
   content?: string | null;
   recordedClicksAndKeys?: (MouseClick | KeyInput)[];
 }
-
+export interface Tink {
+  id?: string;
+  date_created?: string;
+  website?: string;
+  steps?: Step[];
+}
 export interface ScrappedStep {
   selector: string;
   total: number;
