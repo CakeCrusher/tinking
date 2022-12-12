@@ -38,6 +38,10 @@ conf.plugins = conf.plugins.filter(
 
 conf.output.path = path.join(process.cwd(), "./build");
 
+fs.watch(paths.appPublic, { recursive: true }, (event, filename) => {
+  copyPublicFolder();
+});
+
 webpack(conf).watch({}, (err, stats) => {
   if (err) {
     console.error(err);
