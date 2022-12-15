@@ -1,8 +1,8 @@
 {
-  "name": "Tinking - R",
-  "version": "0.0.1",
+  "name": "Tinking - B",
+  "version": "0.0.2",
   "manifest_version": 3,
-  "description": "No-code tool to generate scripts for scraping data.",
+  "description": "(active development Tinking) Extract data from any website without code, just clicks",
   "icons": {
     "512": "logo512.png"
   },
